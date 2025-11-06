@@ -1,0 +1,4 @@
+fastapi
+uvicorn[standard]
+ldap3
+python-dotenv
