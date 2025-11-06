@@ -1,1 +1,3 @@
-"# fast_api_ladp_auth_server" 
+EJECUTAR SERVIDOR:
+
+uvicorn main:app --reload --port 8080
