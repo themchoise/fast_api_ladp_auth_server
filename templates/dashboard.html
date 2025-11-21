@@ -3,95 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Authenticated</title>
+    <title>Dashboard - Sistema LDAP</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
             min-height: 100vh;
         }
-        .dashboard-container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 32px;
-        }
-        .welcome-message {
-            font-size: 20px;
-            color: #555;
-            margin-bottom: 30px;
-        }
-        .user-info {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            text-align: left;
-        }
-        .user-info p {
-            margin: 10px 0;
-            color: #333;
-        }
-        .user-info strong {
-            color: #667eea;
-        }
-        .logout-btn {
-            padding: 12px 30px;
+
+        .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border: none;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            font-size: 1.5rem;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .level-tag {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            padding: 0.5rem 1.5rem;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
             border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
-            transition: transform 0.2s;
+            transition: all 0.3s;
         }
+
         .logout-btn:hover {
-            transform: translateY(-2px);
+            background: white;
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .welcome-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .welcome-section h2 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .user-greeting {
+            font-size: 1.2rem;
+            color: #4b5563;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .stat-icon.blue { background: #dbeafe; }
+        .stat-icon.green { background: #d1fae5; }
+        .stat-icon.purple { background: #e9d5ff; }
+        .stat-icon.orange { background: #fed7aa; }
+
+        .stat-info h3 {
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+
+        .stat-info p {
+            color: #1f2937;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-top: 0.3rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .user-only-message {
+            text-align: center;
+            font-size: 2rem;
+            color: #667eea;
+            padding: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <h1>✅ Hello, you are authenticated!</h1>
-        
-        <p class="welcome-message">Bienvenido al sistema</p>
-        
-        <div class="user-info">
-            <p><strong>Usuario:</strong> {{ user.username }}</p>
-            {% if user.displayName %}
-            <p><strong>Nombre:</strong> {{ user.displayName }}</p>
-            {% endif %}
-            {% if user.email %}
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            {% endif %}
-            {% if user.department %}
-            <p><strong>Departamento:</strong> {{ user.department }}</p>
-            {% endif %}
-            {% if user.title %}
-            <p><strong>Cargo:</strong> {{ user.title }}</p>
+    <nav class="navbar">
+        <h1>📊 Sistema de Gestión LDAP</h1>
+        <div class="user-badge">
+            <span>{{ user.displayName }}</span>
+            <span class="level-tag">{{ user.permissions.level }}</span>
+            <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h2>Bienvenido al Dashboard</h2>
+            {% if user.permissions.is_admin %}
+                <p class="user-greeting">Hola <strong>{{ user.displayName }}</strong>, tienes acceso completo de administrador.</p>
+            {% else %}
+                <p class="user-greeting">Hola Usuario</p>
             {% endif %}
         </div>
-        
-        <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+
+        {% if user.permissions.is_admin %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">👥</div>
+                <div class="stat-info">
+                    <h3>Usuarios Activos</h3>
+                    <p>1,247</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">✅</div>
+                <div class="stat-info">
+                    <h3>Sesiones Hoy</h3>
+                    <p>342</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple">🔐</div>
+                <div class="stat-info">
+                    <h3>Autenticaciones</h3>
+                    <p>89%</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">⚠️</div>
+                <div class="stat-info">
+                    <h3>Alertas</h3>
+                    <p>12</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Usuarios por Departamento</h3>
+                <canvas id="departmentChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Actividad Semanal</h3>
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+
+        <script>
+            const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+            new Chart(departmentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['IT', 'Ventas', 'RRHH', 'Gerencia', 'Finanzas'],
+                    datasets: [{
+                        data: [245, 189, 156, 87, 123],
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#f59e0b',
+                            '#10b981',
+                            '#ef4444'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            const activityCtx = document.getElementById('activityChart').getContext('2d');
+            new Chart(activityCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                    datasets: [{
+                        label: 'Inicios de Sesión',
+                        data: [450, 520, 480, 510, 490, 180, 120],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        </script>
+        {% else %}
+        <div class="welcome-section">
+            <div class="user-only-message">
+                👋 Hola Usuario
+            </div>
+        </div>
+        {% endif %}
     </div>
 </body>
 </html>

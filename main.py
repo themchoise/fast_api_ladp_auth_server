@@ -48,7 +48,8 @@ def get_user_permissions(groups: list) -> dict:
         "is_manager": False,
         "is_user": True,
         "roles": [],
-        "permissions": []
+        "permissions": [],
+        "level": "Usuario"
     }
     
     group_names = [extract_group_name(g).lower() for g in groups]
@@ -58,27 +59,33 @@ def get_user_permissions(groups: list) -> dict:
     logger.info(f"📋 Grupos completos (DN): {json.dumps(groups, indent=2)}")
     logger.info(f"📝 Nombres de grupos extraídos: {group_names}")
     
-    admin_groups = ["domain admins", "administrators", "enterprise admins"]
-    logger.info(f"🔎 Buscando coincidencias con grupos admin: {admin_groups}")
-    if any(admin in group_names for admin in admin_groups):
+    has_schema_admin = "schema admins" in group_names
+    has_gerencia = "gg_gerencia" in group_names
+    
+    if has_schema_admin and has_gerencia:
+        permissions["is_admin"] = True
+        permissions["is_manager"] = True
+        permissions["roles"] = ["admin", "manager"]
+        permissions["permissions"] = ["read", "write", "delete", "manage_users", "view_reports"]
+        permissions["level"] = "Administrador de Sistema"
+        logger.info("✅ Usuario identificado como ADMINISTRADOR DE SISTEMA (Schema Admin + Gerencia)")
+    elif has_schema_admin:
         permissions["is_admin"] = True
         permissions["roles"].append("admin")
-        permissions["permissions"].extend(["read", "write", "delete", "manage_users", "view_reports"])
-        logger.info("✅ Usuario identificado como ADMIN")
-    
-    manager_groups = ["managers", "supervisors", "gerencia"]
-    logger.info(f"🔎 Buscando coincidencias con grupos manager: {manager_groups}")
-    if any(manager in group_names for manager in manager_groups):
+        permissions["permissions"] = ["read", "write", "delete", "manage_users", "view_reports"]
+        permissions["level"] = "Administrador de Sistema"
+        logger.info("✅ Usuario identificado como ADMINISTRADOR DE SISTEMA")
+    elif has_gerencia:
         permissions["is_manager"] = True
         permissions["roles"].append("manager")
-        if "read" not in permissions["permissions"]:
-            permissions["permissions"].extend(["read", "write", "view_reports"])
-        logger.info("✅ Usuario identificado como MANAGER")
-    
-    if not permissions["is_admin"] and not permissions["is_manager"]:
+        permissions["permissions"] = ["read", "write", "view_reports"]
+        permissions["level"] = "Gerencia"
+        logger.info("✅ Usuario identificado como GERENCIA")
+    else:
         permissions["roles"].append("user")
         permissions["permissions"].append("read")
-        logger.info("ℹ️ Usuario identificado como USER básico")
+        permissions["level"] = "Usuario"
+        logger.info("ℹ️ Usuario identificado como USUARIO básico")
     
     logger.info(f"🎯 PERMISOS FINALES: {json.dumps(permissions, indent=2)}")
     logger.info("="*60)
@@ -167,14 +174,17 @@ async def login_post(request: Request, username: str = Form(...), password: str 
             {"request": request, "error": "Credenciales inválidas"}
         )
     
-    
     session_token = serializer.dumps(user_data)
-    response = RedirectResponse(url="/dashboard", status_code=302)
+    
+    response = templates.TemplateResponse(
+        "success.html",
+        {"request": request, "user": user_data}
+    )
     response.set_cookie(
         key="session",
         value=session_token,
         httponly=True,
-        max_age=3600,  
+        max_age=3600,
         samesite="lax"
     )
     return response
