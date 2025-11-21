@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Authenticated</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .dashboard-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+        .welcome-message {
+            font-size: 20px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+        .user-info {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .user-info p {
+            margin: 10px 0;
+            color: #333;
+        }
+        .user-info strong {
+            color: #667eea;
+        }
+        .logout-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        .logout-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>✅ Hello, you are authenticated!</h1>
+        
+        <p class="welcome-message">Bienvenido al sistema</p>
+        
+        <div class="user-info">
+            <p><strong>Usuario:</strong> {{ user.username }}</p>
+            {% if user.displayName %}
+            <p><strong>Nombre:</strong> {{ user.displayName }}</p>
+            {% endif %}
+            {% if user.email %}
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            {% endif %}
+            {% if user.department %}
+            <p><strong>Departamento:</strong> {{ user.department }}</p>
+            {% endif %}
+            {% if user.title %}
+            <p><strong>Cargo:</strong> {{ user.title }}</p>
+            {% endif %}
+        </div>
+        
+        <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+    </div>
+</body>
+</html>
