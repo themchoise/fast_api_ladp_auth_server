@@ -2,8 +2,9 @@ EJECUTAR SERVIDOR:
 
 uvicorn main:app --reload --port 8080
 
-
-
-USUARI DE PRUEBA: 
+USUARI DE PRUEBA:
 carlos
 CCrX_173a
+
+Romina
+Caudillo_51

@@ -26,7 +26,6 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 def get_session_data(request: Request):
-    """Obtiene los datos de la sesión desde la cookie"""
     session_cookie = request.cookies.get("session")
     if not session_cookie:
         return None
@@ -36,13 +35,11 @@ def get_session_data(request: Request):
         return None
 
 def extract_group_name(group_dn: str) -> str:
-    """Extrae el nombre del grupo desde el DN completo"""
     if group_dn.startswith("CN="):
         return group_dn.split(",")[0].replace("CN=", "")
     return group_dn
 
 def get_user_permissions(groups: list) -> dict:
-    """Determina los permisos del usuario basado en sus grupos de AD"""
     permissions = {
         "is_admin": False,
         "is_manager": False,
@@ -55,9 +52,9 @@ def get_user_permissions(groups: list) -> dict:
     group_names = [extract_group_name(g).lower() for g in groups]
     
     logger.info("="*60)
-    logger.info("🔍 ANALIZANDO PERMISOS DEL USUARIO")
-    logger.info(f"📋 Grupos completos (DN): {json.dumps(groups, indent=2)}")
-    logger.info(f"📝 Nombres de grupos extraídos: {group_names}")
+    logger.info("ANALIZANDO PERMISOS DEL USUARIO")
+    logger.info(f"Grupos completos (DN): {json.dumps(groups, indent=2)}")
+    logger.info(f"Nombres de grupos extraídos: {group_names}")
     
     has_schema_admin = "schema admins" in group_names
     has_gerencia = "gg_gerencia" in group_names
@@ -68,47 +65,47 @@ def get_user_permissions(groups: list) -> dict:
         permissions["roles"] = ["admin", "manager"]
         permissions["permissions"] = ["read", "write", "delete", "manage_users", "view_reports"]
         permissions["level"] = "Administrador de Sistema"
-        logger.info("✅ Usuario identificado como ADMINISTRADOR DE SISTEMA (Schema Admin + Gerencia)")
+        logger.info("Usuario identificado como ADMINISTRADOR DE SISTEMA (Schema Admin + Gerencia)")
     elif has_schema_admin:
         permissions["is_admin"] = True
         permissions["roles"].append("admin")
         permissions["permissions"] = ["read", "write", "delete", "manage_users", "view_reports"]
         permissions["level"] = "Administrador de Sistema"
-        logger.info("✅ Usuario identificado como ADMINISTRADOR DE SISTEMA")
+        logger.info("Usuario identificado como ADMINISTRADOR DE SISTEMA")
     elif has_gerencia:
         permissions["is_manager"] = True
         permissions["roles"].append("manager")
         permissions["permissions"] = ["read", "write", "view_reports"]
         permissions["level"] = "Gerencia"
-        logger.info("✅ Usuario identificado como GERENCIA")
+        logger.info("Usuario identificado como GERENCIA")
     else:
         permissions["roles"].append("user")
         permissions["permissions"].append("read")
         permissions["level"] = "Usuario"
-        logger.info("ℹ️ Usuario identificado como USUARIO básico")
+        logger.info("Usuario identificado como USUARIO basico")
     
-    logger.info(f"🎯 PERMISOS FINALES: {json.dumps(permissions, indent=2)}")
+    logger.info(f"PERMISOS FINALES: {json.dumps(permissions, indent=2)}")
     logger.info("="*60)
     
     return permissions
 
 def authenticate_ldap(username: str, password: str):
-    logger.info("\n" + "🔐 INICIO DE AUTENTICACIÓN LDAP " + "="*40)
-    logger.info(f"👤 Usuario intentando autenticar: {username}")
+    logger.info("\n" + "INICIO DE AUTENTICACION LDAP " + "="*40)
+    logger.info(f"Usuario intentando autenticar: {username}")
     
     user = f"{LDAP_DOMAIN}\\{username}"
     
     try:
         conn = Connection(server, user=user, password=password, authentication=NTLM)
     except Exception as e:
-        logger.error(f"❌ Error al conectar con LDAP: {e}")
+        logger.error(f"Error al conectar con LDAP: {e}")
         return None
     
     if not conn.bind():
-        logger.warning(f"⚠️ Credenciales inválidas para usuario: {username}")
+        logger.warning(f"Credenciales invalidas para usuario: {username}")
         return None
     
-    logger.info(f"✅ Conexión LDAP exitosa para: {username}")
+    logger.info(f"Conexion LDAP exitosa para: {username}")
     
     search_filter = f"(sAMAccountName={username})"
     conn.search(
@@ -121,10 +118,10 @@ def authenticate_ldap(username: str, password: str):
     user_data = {}
     if conn.entries:
         entry = conn.entries[0]
-        logger.info(f"📄 Datos encontrados en AD para: {username}")
+        logger.info(f"Datos encontrados en AD para: {username}")
         
         groups = [str(group) for group in entry.memberOf] if hasattr(entry, 'memberOf') else []
-        logger.info(f"👥 Usuario pertenece a {len(groups)} grupo(s)")
+        logger.info(f"Usuario pertenece a {len(groups)} grupo(s)")
         
         user_permissions = get_user_permissions(groups)
         
@@ -140,7 +137,7 @@ def authenticate_ldap(username: str, password: str):
             "permissions": user_permissions
         }
         
-        logger.info("\n" + "📦 DATOS COMPLETOS DEL USUARIO " + "="*40)
+        logger.info("\n" + "DATOS COMPLETOS DEL USUARIO " + "="*40)
         logger.info(json.dumps(user_data, indent=2, ensure_ascii=False))
         logger.info("="*70 + "\n")
     
@@ -149,7 +146,6 @@ def authenticate_ldap(username: str, password: str):
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    """Redirige a /login o /dashboard según el estado de autenticación"""
     session_data = get_session_data(request)
     if session_data:
         return RedirectResponse(url="/dashboard", status_code=302)
@@ -157,7 +153,6 @@ async def root(request: Request):
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    """Muestra la página de login"""
     session_data = get_session_data(request)
     if session_data:
         return RedirectResponse(url="/dashboard", status_code=302)
@@ -165,7 +160,6 @@ async def login_page(request: Request):
 
 @app.post("/login", response_class=HTMLResponse)
 async def login_post(request: Request, username: str = Form(...), password: str = Form(...)):
-    """Procesa el login del usuario"""
     user_data = authenticate_ldap(username, password)
     
     if not user_data:
@@ -191,7 +185,6 @@ async def login_post(request: Request, username: str = Form(...), password: str 
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    """Muestra el dashboard para usuarios autenticados"""
     session_data = get_session_data(request)
     if not session_data:
         return RedirectResponse(url="/login", status_code=302)
@@ -203,14 +196,12 @@ async def dashboard(request: Request):
 
 @app.get("/logout")
 async def logout():
-    """Cierra la sesión del usuario"""
     response = RedirectResponse(url="/login", status_code=302)
     response.delete_cookie("session")
     return response
 
 @app.post("/api/login")
 def api_login(credentials: LoginRequest):
-    """Endpoint API original para login (JSON)"""
     user_data = authenticate_ldap(credentials.username, credentials.password)
     
     if not user_data:

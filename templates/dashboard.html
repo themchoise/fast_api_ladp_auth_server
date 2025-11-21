@@ -167,11 +167,11 @@
 </head>
 <body>
     <nav class="navbar">
-        <h1>📊 Sistema de Gestión LDAP</h1>
+        <h1>Sistema de Gestion LDAP</h1>
         <div class="user-badge">
             <span>{{ user.displayName }}</span>
             <span class="level-tag">{{ user.permissions.level }}</span>
-            <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+            <a href="/logout" class="logout-btn">Cerrar Sesion</a>
         </div>
     </nav>
 
@@ -188,28 +188,28 @@
         {% if user.permissions.is_admin %}
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon blue">👥</div>
+                <div class="stat-icon blue"></div>
                 <div class="stat-info">
                     <h3>Usuarios Activos</h3>
                     <p>1,247</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon green">✅</div>
+                <div class="stat-icon green"></div>
                 <div class="stat-info">
                     <h3>Sesiones Hoy</h3>
                     <p>342</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon purple">🔐</div>
+                <div class="stat-icon purple"></div>
                 <div class="stat-info">
                     <h3>Autenticaciones</h3>
                     <p>89%</p>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon orange">⚠️</div>
+                <div class="stat-icon orange"></div>
                 <div class="stat-info">
                     <h3>Alertas</h3>
                     <p>12</p>
@@ -287,7 +287,7 @@
         {% else %}
         <div class="welcome-section">
             <div class="user-only-message">
-                👋 Hola Usuario
+                Hola Usuario
             </div>
         </div>
         {% endif %}
